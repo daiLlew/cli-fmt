@@ -1,13 +1,15 @@
 # funky-log
-Simple logger for Go apps that doesn't take it's self too seriously. 
-Set customized colours for messages at each log levels and provides supports for emojis in log messages.
+Simple logger for Go apps that doesn't take it's self too seriously.
+- Support for emoji's
+- Customize output text colours per log event level.
+- Set the time layout.
 
 ## Sample output
 
 ![Alt text](preview.png?raw=true "Optional Title")
 
 ### Prerequisites
-- Go version >= 1.13
+- Go version >= 1.15.2
 
 ### Getting started
 ```
