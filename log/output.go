@@ -13,34 +13,34 @@ import (
 
 const (
 	prefixFmt = "[%s]"
-	infoEmoji = ":rainbow:"
-	warnEmoji = ":rotating_light:"
-	errEmoji  = ":fire:"
+	outputFmt = "%s\t%s\t%s \t%s"
 )
 
 var (
-	Name string
+	Name       string    = "funky-log"
+	TimeLayout string    = time.RFC3339
+	outW       io.Writer = os.Stdout
 
-	styleInfo = newStyle(color.FgGreen)
-	styleWarn = newStyle(color.FgYellow)
-	styleErr  = newStyle(color.FgHiRed)
+	tw        = tabwriter.NewWriter(outW, 0, 0, 1, ' ', tabwriter.AlignRight)
 
-	writer io.Writer = os.Stdout
-
-	tabWriter = tabwriter.NewWriter(writer, 0, 0, 1, ' ', tabwriter.AlignRight)
+	styleInfo = NewStyle(color.FgGreen, emoji.Sprintf(":white_check_mark:"))
+	styleWarn = NewStyle(color.FgYellow, emoji.Sprintf(":warning: "))
+	styleErr  = NewStyle(color.FgHiRed, emoji.Sprintf(":fire:"))
 )
 
-type style struct {
-	bold   *color.Color
-	italic *color.Color
-	plain  *color.Color
+type Style struct {
+	Emoji  string
+	Bold   *color.Color
+	Italic *color.Color
+	Plain  *color.Color
 }
 
-func newStyle(c color.Attribute) style {
-	return style{
-		bold:   color.New(c, color.Bold),
-		italic: color.New(c, color.Italic),
-		plain:  color.New(c),
+func NewStyle(c color.Attribute, emojiStr string) Style {
+	return Style{
+		Emoji:  emoji.Sprintf(emojiStr),
+		Bold:   color.New(c, color.Bold),
+		Italic: color.New(c, color.Italic),
+		Plain:  color.New(c),
 	}
 }
 
@@ -49,33 +49,37 @@ func Init(name string) {
 }
 
 func Info(msg string, args ...interface{}) {
-	write(styleInfo, infoEmoji, msg, args...)
+	styleInfo.Write(tw, msg, args...)
 }
 
 func Warn(msg string, args ...interface{}) {
-	write(styleWarn, warnEmoji, msg, args...)
+	styleWarn.Write(tw, msg, args...)
 }
 
 func Err(msg string, args ...interface{}) {
-	write(styleErr, errEmoji, msg, args...)
+	styleErr.Write(tw, msg, args...)
 }
 
-func write(s style, symbol, msg string, args ...interface{}) {
-	prefix := s.bold.Sprintf(prefixFmt, Name)
-	timestamp := s.plain.Sprintf("%s", time.Now().Format(time.RFC3339))
+func (s Style) Sprintf(msg string, args ...interface{}) string {
+	prefix := s.Bold.Sprintf(prefixFmt, Name)
 
-	msg = emoji.Sprintf(fmt.Sprintf(msg, highlightArgs(s, args...)...))
-	symbol =  emoji.Sprintf(symbol)
+	ts := s.Plain.Sprintf("%s", time.Now().Format(TimeLayout))
 
-	fmt.Fprintln(tabWriter, fmt.Sprintf("%s\t%s\t%s \t%s", prefix, symbol, timestamp, msg))
-	tabWriter.Flush()
+	msg = emoji.Sprintf(fmt.Sprintf(msg, s.highlightArgs(args...)...))
+
+	return fmt.Sprintf(outputFmt, prefix, s.Emoji, ts, msg)
 }
 
-func highlightArgs(s style, args ...interface{}) []interface{} {
+func (s Style) Write(tw *tabwriter.Writer, msg string, args ...interface{}) {
+	fmt.Fprintln(tw, s.Sprintf(msg, args...))
+	tw.Flush()
+}
+
+func (s Style) highlightArgs(args ...interface{}) []interface{} {
 	highlighted := make([]interface{}, 0)
 
 	for _, arg := range args {
-		highlighted = append(highlighted, s.italic.Sprintf("%s", arg))
+		highlighted = append(highlighted, s.Italic.Sprintf("%s", arg))
 	}
 
 	return highlighted
