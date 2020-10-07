@@ -17,16 +17,24 @@ const (
 )
 
 var (
-	Name       string    = "funky-log"
-	TimeLayout string    = time.RFC3339
-	outW       io.Writer = os.Stdout
+	namespace string    = "funky-log"
+	timeFmt   string    = time.RFC3339
+	outW      io.Writer = os.Stdout
 
-	tw        = tabwriter.NewWriter(outW, 0, 0, 1, ' ', tabwriter.AlignRight)
+	tw = tabwriter.NewWriter(outW, 0, 0, 1, ' ', tabwriter.AlignRight)
 
-	styleInfo = NewStyle(color.FgGreen, emoji.Sprintf(":white_check_mark:"))
-	styleWarn = NewStyle(color.FgYellow, emoji.Sprintf(":warning: "))
-	styleErr  = NewStyle(color.FgHiRed, emoji.Sprintf(":fire:"))
+	infoStyle = NewStyle(color.FgGreen, emoji.Sprintf(":white_check_mark:"))
+	warnStyle = NewStyle(color.FgYellow, emoji.Sprintf(":warning: "))
+	errStyle  = NewStyle(color.FgHiRed, emoji.Sprintf(":fire:"))
 )
+
+type Configuration struct {
+	Namespace string
+	TimeFmt   string
+	InfoStyle Style
+	WarnStyle Style
+	ErrStyle  Style
+}
 
 type Style struct {
 	Emoji  string
@@ -45,25 +53,39 @@ func NewStyle(c color.Attribute, emojiStr string) Style {
 }
 
 func Init(name string) {
-	Name = name
+	namespace = name
+}
+
+func Customise(cfg Configuration) {
+	if cfg.Namespace != "" {
+		namespace = cfg.Namespace
+	}
+
+	if cfg.TimeFmt != "" {
+		timeFmt = cfg.TimeFmt
+	}
+
+	infoStyle = cfg.InfoStyle
+	warnStyle = cfg.WarnStyle
+	errStyle = cfg.ErrStyle
 }
 
 func Info(msg string, args ...interface{}) {
-	styleInfo.Write(tw, msg, args...)
+	infoStyle.Write(tw, msg, args...)
 }
 
 func Warn(msg string, args ...interface{}) {
-	styleWarn.Write(tw, msg, args...)
+	warnStyle.Write(tw, msg, args...)
 }
 
 func Err(msg string, args ...interface{}) {
-	styleErr.Write(tw, msg, args...)
+	errStyle.Write(tw, msg, args...)
 }
 
 func (s Style) Sprintf(msg string, args ...interface{}) string {
-	prefix := s.Bold.Sprintf(prefixFmt, Name)
+	prefix := s.Bold.Sprintf(prefixFmt, namespace)
 
-	ts := s.Plain.Sprintf("%s", time.Now().Format(TimeLayout))
+	ts := s.Plain.Sprintf("%s", time.Now().Format(timeFmt))
 
 	msg = emoji.Sprintf(fmt.Sprintf(msg, s.highlightArgs(args...)...))
 

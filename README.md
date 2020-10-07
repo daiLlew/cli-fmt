@@ -1,2 +1,4 @@
 # funky-log
-Output formatter for cli clients
+Fun funky logger for Go apps.
+
+![Alt text](preview.png?raw=true "Optional Title")
