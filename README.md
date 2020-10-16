@@ -1,4 +1,4 @@
-# funky-log
+# funkylog
 Simple logger for Go apps that doesn't take it's self too seriously.
 - Support for emoji's
 - Customize output text colours per log event level.

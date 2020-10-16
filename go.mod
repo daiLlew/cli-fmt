@@ -1,4 +1,4 @@
-module github.com/daiLlew/funklog
+module github.com/daiLlew/funkylog
 
 go 1.15
 
