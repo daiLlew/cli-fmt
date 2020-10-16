@@ -1,4 +1,4 @@
-module github.com/daiLlew/cli-fmt
+module github.com/daiLlew/funklog
 
 go 1.15
 

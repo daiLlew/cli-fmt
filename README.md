@@ -13,13 +13,15 @@ Simple logger for Go apps that doesn't take it's self too seriously.
 
 ### Getting started
 ```
-go get github.com/daiLlew/funky-log
+go get github.com/daiLlew/funkylog
 ```
 
 ### Usage
 Using the default setup:
 ```go
-import "github.com/daiLlew/cli-fmt/log"
+import (
+    log "github.com/daiLlew/funkylog"
+)
 
 ...
 

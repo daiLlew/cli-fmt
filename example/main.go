@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/daiLlew/cli-fmt/log"
+	log "github.com/daiLlew/funklog"
 	"github.com/fatih/color"
 )
 
