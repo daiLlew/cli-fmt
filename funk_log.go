@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"text/tabwriter"
 	"time"
 
@@ -26,6 +27,31 @@ var (
 	infoStyle = NewStyle(color.FgGreen, emoji.Sprintf(":white_check_mark:"))
 	warnStyle = NewStyle(color.FgYellow, emoji.Sprintf(":warning: "))
 	errStyle  = NewStyle(color.FgHiRed, emoji.Sprintf(":fire:"))
+
+	formats = []string{
+		"%v",
+		"%#v",
+		"%T",
+		"%t",
+		"%b",
+		"%c",
+		"%d",
+		"%o",
+		"%0",
+		"%q",
+		"%x",
+		"%X",
+		"%U",
+		"%b",
+		"%e",
+		"%E",
+		"%f",
+		"%F",
+		"%g",
+		"%G",
+		"%s",
+		"%p",
+	}
 )
 
 type Configuration struct {
@@ -87,7 +113,9 @@ func (s Style) Sprintf(msg string, args ...interface{}) string {
 
 	ts := s.Plain.Sprintf("%s", time.Now().Format(timeFmt))
 
-	msg = emoji.Sprintf(fmt.Sprintf(msg, s.highlightArgs(args...)...))
+	msg = s.highlightArgs(msg, args...)
+
+	msg = emoji.Sprintf(msg)
 
 	return fmt.Sprintf(outputFmt, prefix, s.Emoji, ts, msg)
 }
@@ -97,12 +125,18 @@ func (s Style) Write(tw *tabwriter.Writer, msg string, args ...interface{}) {
 	tw.Flush()
 }
 
-func (s Style) highlightArgs(args ...interface{}) []interface{} {
-	highlighted := make([]interface{}, 0)
+// If the msg string contains any of the supported Golang formats then wrap it in an open/close colour tag.
+// Example:
+// If message contains "%s" replace it with "[start_colour]%s[end_colour]"
+// This allows the argument to be formatted as desired using the standard fmt library but the inclusion of the
+// start/end colour tags will "highlight" the string value when its output
+func (s Style) highlightArgs(msg string, args ...interface{}) string {
+	for _, f := range formats {
+		if strings.Contains(msg, f) {
 
-	for _, arg := range args {
-		highlighted = append(highlighted, s.Italic.Sprintf("%s", arg))
+			msg = strings.ReplaceAll(msg, f, s.Italic.Sprintf("%s", f))
+		}
 	}
 
-	return highlighted
+	return fmt.Sprintf(msg, args...)
 }
